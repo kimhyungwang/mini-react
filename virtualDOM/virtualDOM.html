@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>상태로 만드는 Virtual DOM</title>
+  </head>
+  <body>
+    <!-- 카운터 컴포넌트를 표시할 영역입니다. -->
+    <div id="app">
+      <div id="counter-root"></div>
+    </div>
+
+    <button id="button" aria-controls="counter-root">증가 </button>
+    <p id="goal-message"></p>
+
+    <script src="./diffVirtualDOM.js"></script>
+    <script src="./componentViews.js"></script>
+    <script src="./patchDOM.js"></script>
+    <script src="./createComponent.js"></script>
+    <script> 
+      window.addEventListener("DOMContentLoaded", () => {
+        const button = document.getElementById("button");
+        const goalMessage = document.getElementById("goal-message");
+
+        // 카운터의 상태와 화면 갱신 기능을 만듭니다.
+        const counter = createComponent(
+          document.getElementById("counter-root"),
+          { count: 0 },
+          createCounterView
+        );
+
+        // 구독자 2: 숫자가 10 이상이면 목표 달성 문구를 표시합니다.
+        function updateGoalMessage(state) {
+          goalMessage.textContent = state.count >= 3 ? "목표 달성!" : "";
+        }
+
+        // 화면 갱신 구독자는 createComponent() 내부에서 이미 등록했습니다.
+        counter.subscribe(updateGoalMessage);
+
+        button.addEventListener("click", () => {
+          counter.setState({ count: counter.state.count + 1 });
+        });
+      });
+    </script>
+  </body>
+</html>

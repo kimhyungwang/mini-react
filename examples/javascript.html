@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JavaScript 카운터</title>
+</head>
+
+<body>
+  <h1>JavaScript 카운터</h1>
+  <p>숫자: <span id="number">0</span></p>
+  <button id="button">증가</button>
+  <pre id="virtual-dom-output"></pre>
+  <script>
+    let count = 0;
+
+    const number = document.getElementById("number");
+    const button = document.getElementById("button");
+
+    const virtualDOM = {
+      type: number.tagName.toLowerCase(),
+      props: {
+        id: number.id
+      },
+      children: [number.textContent]
+    };
+
+    const output = document.getElementById("virtual-dom-output");
+
+    output.textContent = JSON.stringify(virtualDOM, null, 2);
+
+
+    button.addEventListener("click", () => {
+      count = count + 1;           // ① 데이터 변경
+      number.textContent = count; // ② 화면을 직접 변경
+    });
+  </script>
+</body>
+
+</html>

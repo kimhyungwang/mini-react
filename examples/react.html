@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React 카운터</title>
+    <!-- 브라우저에서 JSX를 실행하기 위해 Babel을 불러옵니다. -->
+    <script src="https://unpkg.com/@babel/standalone@7.26.9/babel.min.js"></script>
+  </head>
+  <body>
+    <h1>React 카운터</h1>
+    <div id="root"></div>
+    
+
+    <script type="text/babel" data-type="module" data-presets="react">
+      import React, { useState } from "https://esm.sh/react@19.2.0";
+      import { createRoot } from "https://esm.sh/react-dom@19.2.0/client?deps=react@19.2.0";
+
+      function App() {
+        const [count, setCount] = useState(0);
+
+        function handleClick() {
+          setCount(count + 1); // 상태 변경 요청
+        }
+
+        return (
+          <div>
+            <p>숫자: <span>{count}</span></p>
+            <button onClick={handleClick}>증가</button>
+          </div>
+        );
+      }
+
+      // App 컴포넌트를 root 영역에 처음 표시합니다.
+      createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>
