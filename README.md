@@ -131,15 +131,7 @@ function App() {
 
 > 자식은 `h(Counter, ...)`가 아니라 `Counter({ ... })`로 호출합니다.
 
-## Hooks
-
-모두 **루트 컴포넌트 안, 맨 위**에서 호출합니다. 조건문이나 반복문 안에서 호출하지 않습니다.
-
-```js
-import { useState, useMemo, useEffect } from "./hooks.js";
-```
-
-### useState — 바뀌는 값 저장
+## useState — 바뀌는 값 저장
 
 ```js
 const [값, 바꾸는함수] = useState(처음값);
@@ -159,45 +151,18 @@ setTodos(todos.map((t, i) => i === index ? "수정" : t));  // 수정
 
 > `todos.push(...)`처럼 기존 배열을 직접 고치면 화면이 바뀌지 않습니다.
 
-### useMemo — 계산 결과 재사용
-
-```js
-const 결과 = useMemo(() => 계산, [의존성]);
-```
-
-의존성이 바뀔 때만 다시 계산합니다.
-
-```js
-const doneCount = useMemo(() => todos.filter((t) => t.done).length, [todos]);
-```
-
-### useEffect — 화면을 그린 뒤 할 일
-
-```js
-useEffect(() => { 할 일 }, [의존성]);
-```
-
-화면 반영이 끝난 뒤, 의존성이 바뀔 때만 실행됩니다. 탭 제목 변경, 타이머처럼 화면 밖의 작업에 씁니다.
-
-```js
-useEffect(() => {
-  document.title = `할 일 ${todos.length}개`;
-}, [todos.length]);
-```
-
 ## 예제
 
 | 파일 | 내용 |
 |---|---|
 | [`phase2.html`](./phase2.html) | 숫자 올리기, 이름 입력, 글자 수, 탭 제목 |
-| [`roulette.html`](./roulette.html) | 이름을 입력해 돌리는 랜덤 룰렛 (자식 컴포넌트 분리 예시) |
+| [`roulette.html`](./roulette.html) | 42~72번이 미리 들어 있는 번호 랜덤 룰렛 (삭제·다시 추가 가능) (자식 컴포넌트 분리 예시) |
 | [`index.html`](./index.html) | Virtual DOM · Diff · Patch 검증 페이지 |
 
 ## 알아둘 점
 
 - 리스트 항목은 **순서대로** 비교합니다. 가운데 항목을 지우면 뒤 항목들은 "내용 변경"으로 처리됩니다.
 - 바꾸는 함수를 부를 때마다 바로 다시 그립니다. 여러 번 부르면 그만큼 그립니다.
-- `useEffect`의 정리 함수(return)는 지원하지 않습니다.
 - 개발자 도구 Console에서 `update 변경 목록` 로그로 어떤 부분이 바뀌었는지 볼 수 있습니다.
 
 ## 실제 DOM이 느린 이유 (Reflow / Repaint)
