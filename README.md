@@ -57,21 +57,6 @@ DOM을 변경하면 이런 작업이 필요할 수 있습니다.
 `createElement()`가 태그, 속성, 자식, 이벤트, 입력 프로퍼티를 가진 Virtual DOM을 생성합니다.
 Diff는 두 트리의 차이를 변경 목록으로 만들고, Patch는 해당 목록을 실제 DOM에 적용합니다.
 
-### Virtual DOM의 구조와 역할
-
-VDOM은 화면 구조를 표현하는 일반 JavaScript 객체입니다. 다음 정보를 보관합니다.
-
-| 정보 | 내용 |
-| --- | --- |
-| 태그 | 어떤 종류의 요소인지 |
-| 속성 | 클래스 등 요소에 적용할 설정 |
-| 자식 | 요소 안에 들어갈 글자나 다른 요소 |
-| 이벤트 | 클릭·입력 시 실행할 함수 |
-| 입력 상태 | 입력값이나 체크 여부 |
-
-이전 화면과 다음 화면을 데이터로 비교할 수 있어, 컴포넌트가 선언한 결과를 실제 DOM에 반영하는 기준이 됩니다.
-최초 렌더링에서는 DOM을 생성하고, 이후에는 이전 VDOM과 새 VDOM을 비교해 기존 DOM을 갱신합니다.
-
 ### Diff의 5가지 기본 경우
 
 같은 위치의 두 노드를 비교하고, 자식도 같은 방식으로 재귀적으로 비교합니다.
@@ -84,9 +69,6 @@ VDOM은 화면 구조를 표현하는 일반 JavaScript 객체입니다. 다음 
 | 교체 | 태그나 노드 종류가 달라짐 | `REPLACE` |
 | 텍스트 변경 | 같은 위치의 텍스트 내용이 달라짐 | `TEXT` |
 | 속성 변경 | 속성이 추가·삭제되거나 값이 달라짐 | `SET_PROP`, `REMOVE_PROP` |
-
-이벤트 함수와 입력 프로퍼티는 각각 `SET_EVENT`, `SET_DOM_PROP`로 구분합니다.
-현재는 자식을 인덱스로 대응시키므로 목록 중간 삽입·순서 변경에서 추가 수정이 발생할 수 있으며, 전역적으로 최소인 변경 횟수를 보장하지는 않습니다.
 
 ### 변경 목록을 실제 DOM에 반영
 
@@ -109,10 +91,6 @@ Patch는 경로에 해당하는 DOM을 찾아 추가·삭제·교체 메서드�
 
 구현: [components.js](virtualDOM/components.js), [createElement.js](virtualDOM/createElement.js)
 
-여러 컴포넌트가 함께 사용하는 상태는 가장 가까운 공통 부모에 두고, 값과 변경 함수를 props로 전달할 수 있습니다.
-이 구현에서는 루트만 상태를 관리한다는 제약에 맞춰 모든 상태를 루트에 둡니다.
-관련 개념: [React — Sharing State Between Components](https://react.dev/learn/sharing-state-between-components).
-
 ## 함수를 다시 실행해도 유지되는 상태
 
 - `FunctionComponent` 인스턴스에 `hooks` 배열을 보관합니다.
@@ -122,30 +100,17 @@ Patch는 경로에 해당하는 DOM을 찾아 추가·삭제·교체 메서드�
 
 구현: [FunctionComponent.js](virtualDOM/FunctionComponent.js), [hooks.js](virtualDOM/hooks.js)
 
-## 여러 상태 변경을 모으는 Batching
-
-`updateScheduled`로 중복 예약을 막고, `queueMicrotask()`로 현재 동기 코드가 끝난 뒤 화면을 갱신합니다.
-같은 이벤트 처리 안에서 여러 상태가 바뀌어도 화면 갱신은 한 번만 예약해 변경 결과를 함께 반영합니다.
-
-이 구현은 setter 호출 시 저장된 값을 바로 계산하고 **렌더링 예약을 묶는 방식**입니다.
-React는 상태 갱신을 큐에 넣고 다음 렌더링에서 처리하므로 내부 처리 방식에는 차이가 있습니다.
-비교 자료: [React — Queueing a Series of State Updates](https://react.dev/learn/queueing-a-series-of-state-updates).
-
 ## 실제 React와의 동작 비교
 
-React도 업데이트가 발생하면 컴포넌트를 실행해 다음 UI를 계산하고, Commit 단계에서 실제 DOM을 변경합니다.
-컴포넌트 함수가 다시 실행되는 것과 실제 DOM 전체가 다시 생성되는 것은 구분해야 합니다.
-설명: [React — Render and Commit](https://react.dev/learn/render-and-commit).
+두 구현 모두 렌더링 결과를 비교해 실제 DOM의 변경된 부분을 갱신합니다.
 
 | 항목 | 이 프로젝트 | React |
 | --- | --- | --- |
-| 상태 소유 | 루트 인스턴스에만 Hook과 상태 보관 | 각 함수형 컴포넌트에서 Hook과 상태 사용 가능 |
-| 자식 대응 | 같은 인덱스끼리 비교 | 타입·트리 위치와 목록의 `key` 등을 이용해 대응 |
-| 상태 갱신 | setter에서 저장값을 계산하고 마이크로태스크로 렌더링 예약 | 상태 갱신을 큐에 넣고 렌더링에서 처리 |
-| Effect 실행 | DOM 반영 직후 동기 실행 | 보통 브라우저 Paint 후 실행하며, 사용자 상호작용에 따라 Paint 전에 실행될 수도 있음 |
+| 상태 관리 | 루트에서만 상태·Hook 사용 | 각 함수형 컴포넌트에서 사용 가능 |
+| 자식 비교 | 인덱스 기준 | 타입·위치·목록의 `key` 등을 활용 |
+| Effect 실행 | DOM 반영 직후 실행 | 대체로 Paint 후 실행하며, 상호작용에 따라 달라짐 |
 
-자식 대응은 [React — Preserving and Resetting State](https://react.dev/learn/preserving-and-resetting-state)와 [Rendering Lists](https://react.dev/learn/rendering-lists), Effect 실행 시점은 [React — useEffect](https://react.dev/reference/react/useEffect)를 참고했습니다.
-이 프로젝트는 상태·렌더링·DOM 반영의 연결을 확인하는 데 집중하며, React의 전체 조정·스케줄링 기능을 구현하지는 않습니다.
+참고: [React — Rendering Lists](https://react.dev/learn/rendering-lists), [useEffect](https://react.dev/reference/react/useEffect).
 
 ## 파일 구성
 
