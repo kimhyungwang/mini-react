@@ -25,23 +25,13 @@ flowchart TD
 
 ## 브라우저에서 DOM을 다루는 방법
 
-브라우저는 HTML의 태그와 글자를 JavaScript로 다룰 수 있는 객체로 만듭니다.
-이 객체들이 연결된 구조가 **DOM**입니다. JavaScript로 DOM을 바꾸면 화면에도 반영됩니다.
+DOM은 HTML 요소와 글자를 JavaScript로 다룰 수 있게 만든 구조입니다.
 
-- **`window`**: 현재 페이지가 실행되는 브라우저 환경입니다. HTML을 다 읽었는지 등의 이벤트를 받을 수 있습니다.
-- **`document`**: 현재 열린 HTML 문서를 다루는 객체입니다. 문서에서 요소를 찾거나 새 요소를 만들 때 사용합니다.
-- **DOM 노드**: `<div>`, `<p>` 같은 요소나 텍스트를 나타내는 객체입니다.
+- **window**: 브라우저 환경으로, 문서 로딩 등의 이벤트를 받습니다.
+- **document**: 현재 문서에서 요소를 찾거나 새 요소를 만듭니다.
+- **DOM 노드**: 요소나 텍스트를 나타내며, 추가·수정·삭제하면 화면에 반영됩니다.
 
-예를 들어 빈 영역에 **안녕하세요**라는 글자를 표시하려면 다음 순서로 작업합니다.
-
-1. 브라우저가 HTML을 다 읽을 때까지 기다립니다.
-2. 문서에서 글자를 넣을 영역을 찾습니다.
-3. 새 문단 요소를 만들고 글자를 넣습니다.
-4. 만든 문단을 해당 영역 안에 붙이면 화면에 표시됩니다.
-
-mini-react에서도 `patchDOM.js`가 이런 DOM API를 사용해 VDOM에 적힌 내용을 화면에 반영합니다.
-프로젝트의 `createElement()`는 **VDOM 객체**를 만들고, `document.createElement()`는 **실제 DOM 요소**를 만듭니다.
-관련 API: [Window](https://developer.mozilla.org/en-US/docs/Web/API/Window), [Document](https://developer.mozilla.org/en-US/docs/Web/API/Document).
+mini-react는 이 기능들을 사용해 VDOM의 변경 사항을 실제 화면에 반영합니다.
 
 ### 실제 DOM의 변경 감지
 
