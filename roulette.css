@@ -1,0 +1,91 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+  background: #f5f6fa;
+  color: #222;
+}
+
+.app { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+.title { text-align: center; margin: 0 0 24px; }
+
+.layout { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+
+.panel {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+.name-panel { flex: 1 1 280px; }
+.wheel-panel {
+  flex: 1 1 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ── 참가자 목록 ── */
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.panel-header h2 { margin: 0; font-size: 18px; }
+.total { font-weight: 600; color: #4d96ff; }
+
+.name-list { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.name-row { display: flex; align-items: center; gap: 8px; }
+.name-index { width: 24px; text-align: right; color: #999; font-size: 14px; }
+.name-input { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; }
+.name-input:focus { outline: none; border-color: #4d96ff; }
+
+button { cursor: pointer; border: none; border-radius: 8px; font-size: 15px; }
+button:disabled, input:disabled { cursor: not-allowed; opacity: 0.4; }
+
+.remove-btn { width: 32px; height: 32px; background: #f1f1f1; }
+.add-btn { width: 100%; padding: 10px; background: #eef4ff; color: #4d96ff; font-weight: 600; }
+
+/* ── 룰렛 ── */
+.wheel-wrap { position: relative; width: 300px; height: 300px; }
+
+.pointer {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 24px solid #222;
+  z-index: 2;
+}
+
+.wheel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 6px solid #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 3s cubic-bezier(0.17, 0.67, 0.21, 1); /* 3초 동안 감속하며 회전 */
+}
+
+.wheel-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wheel-empty { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #888; }
+
+/* ── 돌리기 / 결과 ── */
+.controls { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.spin-btn { padding: 12px 40px; background: #ff6b6b; color: #fff; font-weight: 700; font-size: 17px; }
+.result { margin: 0; min-height: 24px; font-size: 17px; }
+.result strong { color: #ff6b6b; }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mini React</title>
+</head>
+<body>
+  <h2>실제 영역</h2>
+  <div id="real">
+    <div class="card">
+      <h3>제목</h3>
+      <p>안녕하세요</p>
+      <ul><li>사과</li><li>바나나</li></ul>
+    </div>
+  </div>
+
+  <h2>테스트 영역</h2>
+  <div id="test" contenteditable="true"></div>
+
+  <button id="back-btn">◀ 뒤로가기</button>
+  <button id="patch-btn">Patch</button>
+  <button id="forward-btn">앞으로가기 ▶</button>
+  <span id="history-info"></span>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
