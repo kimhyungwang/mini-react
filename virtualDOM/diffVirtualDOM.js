@@ -66,6 +66,16 @@ function diffVirtualDOM(previous, next, path = []) {
     }
   }
 
+  // 이벤트 함수는 HTML 속성과 구분해서 추가·교체·제거합니다.
+  const previousEvents = previous.events ?? {};
+  const nextEvents = next.events ?? {};
+  const eventNames = new Set([...Object.keys(previousEvents), ...Object.keys(nextEvents)]);
+  for (const name of eventNames) {
+    if (previousEvents[name] !== nextEvents[name]) {
+      changes.push({ type: "SET_EVENT", path, name, newValue: nextEvents[name] });
+    }
+  }
+
   // 같은 인덱스의 자식끼리 비교합니다. 자식의 자식도 같은 방식으로 비교합니다.
   const childCount = Math.max(previous.children.length, next.children.length);
   for (let index = 0; index < childCount; index += 1) {
@@ -75,6 +85,22 @@ function diffVirtualDOM(previous, next, path = []) {
       [...path, index]
     );
     changes.push(...childChanges);
+  }
+
+  // 속성/자식 변경은 브라우저의 입력 상태에도 영향을 줄 수 있습니다.
+  // 자식 처리 후 현재 입력 상태를 복원하도록 기록합니다.
+  const subtreeChanged = changes.length > 0;
+  const previousDOMProps = previous.domProps ?? {};
+  for (const [name, newValue] of Object.entries(next.domProps ?? {})) {
+    const oldValue = previousDOMProps[name];
+    const sameValue = Array.isArray(newValue)
+      ? Array.isArray(oldValue) && oldValue.length === newValue.length
+        && newValue.every((value, index) => value === oldValue[index])
+      : oldValue === newValue;
+
+    if (!sameValue || subtreeChanged) {
+      changes.push({ type: "SET_DOM_PROP", path, name, oldValue, newValue });
+    }
   }
 
   return changes;
