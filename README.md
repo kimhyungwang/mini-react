@@ -24,33 +24,38 @@ flowchart TD
 
 ## Virtual DOM · Diff · Patch
 
-- `domToVNode()`는 실제 DOM을, `h()`는 코드로 받은 값을 Virtual DOM으로 만듭니다.
-- `createElement()`는 Virtual DOM을 실제 DOM으로 만듭니다.
-- 이전 Virtual DOM과 새 Virtual DOM을 비교하고, 변경 목록만 실제 DOM에 적용합니다.
-
 소스: [`vdom.js`](./vdom.js) · [`diff.js`](./diff.js) · [`patch.js`](./patch.js)
 
-### Diff의 5가지 기본 경우
+### diff
 
-| 경우 | 판단 기준 | 변경 목록 |
-|---|---|---|
-| 추가 | 새 노드만 있음 | `ADD` |
-| 삭제 | 이전 노드만 있음 | `REMOVE` |
-| 교체 | 태그가 다름 | `REPLACE` |
-| 텍스트 변경 | 글자가 다름 | `TEXT` |
-| 속성 변경 | 속성·이벤트 값이 다름 | `PROPS` |
+```js
+const patches = diff(이전VNode, 새VNode);
+```
 
-### 변경 목록을 실제 DOM에 반영
+- 두 Virtual DOM을 비교해 바뀐 곳의 목록을 돌려줍니다.
+- 실제 DOM은 건드리지 않습니다.
 
-- 변경 목록에 없는 노드는 기존 DOM을 그대로 사용합니다.
-- 이벤트는 이전 함수를 떼고 새 함수를 붙여 중복 실행을 막습니다.
-- 입력창 `value`는 프로퍼티에 직접 넣어 실제 값이 바뀌게 합니다.
+| 변경 | 언제 |
+|---|---|
+| `ADD` | 노드가 생김 |
+| `REMOVE` | 노드가 사라짐 |
+| `REPLACE` | 태그가 바뀜 |
+| `TEXT` | 글자가 바뀜 |
+| `PROPS` | 속성·이벤트가 바뀜 |
+
+### patch
+
+```js
+patch(실제DOM, patches);
+```
+
+- `diff`가 만든 목록대로 실제 DOM의 바뀐 곳만 고칩니다.
+- 목록에 없는 노드는 그대로 둡니다.
 
 ### Phase 1 검증 페이지
 
-- 실제 영역의 HTML을 Virtual DOM으로 바꿔 테스트 영역에 그립니다.
-- 테스트 영역을 수정하고 Patch를 누르면 바뀐 부분만 실제 영역에 반영합니다.
-- 반영한 Virtual DOM은 History에 저장하고, 뒤로·앞으로 버튼으로 두 영역을 함께 이동합니다.
+- 테스트 영역을 수정하고 **Patch**를 누르면 바뀐 부분만 실제 영역에 반영됩니다.
+- **뒤로·앞으로** 버튼으로 이전 상태로 이동할 수 있습니다.
 
 소스: [`index.html`](./index.html) · [`main.js`](./main.js)
 
@@ -60,31 +65,65 @@ flowchart TD
 - 자식 컴포넌트는 props로 받은 값으로 Virtual DOM만 반환합니다.
 - `FunctionComponent`가 루트를 감싸 `mount()`와 `update()`를 담당합니다.
 
+```js
+const app = new FunctionComponent(App);
+app.mount(document.getElementById("app"));
+```
+
 소스: [`component.js`](./component.js)
 
 ## 함수를 다시 실행해도 유지되는 상태
 
 - 상태는 함수 밖, `FunctionComponent`의 `hooks` 배열에 저장합니다.
-- `render()`마다 `hookIndex`를 0으로 되돌리고, Hook은 호출 순서대로 같은 칸을 사용합니다.
+- Hook은 호출 순서대로 같은 칸을 사용하므로, 조건문 안에서 호출하지 않습니다.
 
 소스: [`hooks.js`](./hooks.js)
 
 ## useState · useEffect · useMemo
 
-### useState — 상태 저장과 화면 갱신
+### useState
 
-- `setState`가 자기 칸에 새 값을 저장하고 `update()`를 호출합니다.
-- 이전 값과 같으면 다시 그리지 않습니다.
+```js
+const [값, 바꾸는함수] = useState(처음값);
+```
 
-### useEffect — 화면 반영 후 작업 실행
+- 값을 저장하고, 바꾸는 함수를 부르면 화면이 다시 그려집니다.
+- 같은 값을 넣으면 다시 그리지 않습니다.
 
-- 의존성이 바뀌었을 때만 작업을 `pendingEffects`에 모읍니다.
-- Patch가 끝난 뒤 `runEffects()`로 실행합니다.
+```js
+const [count, setCount] = useState(0);   // 숫자
+setCount(count + 1);                     // 숫자 1 올리기
 
-### useMemo — 계산 결과 재사용
+const [name, setName] = useState("");    // 이름
+setName("철수");                         // 이름 바꾸기
+```
 
-- 계산 결과와 의존성을 함께 저장합니다.
-- 의존성이 바뀌었을 때만 다시 계산합니다.
+### useEffect
+
+```js
+useEffect(() => { 할 일 }, [의존성]);
+```
+
+- 화면을 다 그린 뒤에 실행됩니다.
+- 의존성 값이 바뀔 때만 다시 실행됩니다.
+
+```js
+useEffect(() => {
+  document.title = `숫자: ${count}`;     // count가 바뀔 때만 탭 제목 변경
+}, [count]);
+```
+
+### useMemo
+
+```js
+const 결과 = useMemo(() => 계산, [의존성]);
+```
+
+- 의존성 값이 바뀔 때만 다시 계산하고, 아니면 이전 결과를 씁니다.
+
+```js
+const nameLength = useMemo(() => name.length, [name]);   // name이 바뀔 때만 글자 수 계산
+```
 
 ## 검증
 
