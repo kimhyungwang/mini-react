@@ -9,13 +9,19 @@ JavaScript로 Virtual DOM, Diff·Patch, 함수형 컴포넌트와 Hooks를 직�
 ## 동작 구조
 
 ```mermaid
-flowchart LR
-    Input[사용자 입력] --> State[상태 변경]
-    State --> Diff[VDOM 비교]
-    Diff --> Patch[화면 부분 갱신]
+flowchart TD
+    Input[버튼 클릭 · 이름 입력] --> State[useState로 상태 변경]
+    State --> Render[갱신 예약 후 App 다시 실행]
+    Render --> Next[새 VDOM 생성]
+    Previous[이전 VDOM] --> Diff[Diff: 변경 사항 비교]
+    Next --> Diff
+    Diff --> Patch[Patch: 실제 DOM 부분 갱신]
+    Patch --> Effect[의존성이 바뀐 Effect 실행]
 ```
 
-상태가 바뀌면 이전 VDOM과 새 VDOM을 비교해 화면에서 달라진 부분만 갱신합니다.
+- 상태는 `hooks` 배열에 저장하고, 갱신이 예약되면 `App`과 자식 컴포넌트를 실행해 새 VDOM을 만듭니다.
+- 이전 VDOM과 비교한 변경 목록을 실제 DOM에 적용하며, 유지할 DOM 노드는 재사용합니다.
+- 갱신한 VDOM은 다음 비교의 기준으로 저장하고, DOM 반영 후 의존성이 바뀐 Effect를 실행합니다.
 
 ## 함수형 컴포넌트와 상태 분리
 
