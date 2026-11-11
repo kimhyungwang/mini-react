@@ -132,18 +132,7 @@ App — count, name 상태 관리
 
 구현: [FunctionComponent.js](virtualDOM/FunctionComponent.js), [hooks.js](virtualDOM/hooks.js)
 
-## useState — 상태 변경과 자동 갱신
-
-- 초기값과 지연 초기화 함수를 지원합니다.
-- `setCount(1)`과 `setCount(value => value + 1)` 형태의 갱신을 지원합니다.
-- `Object.is()`로 값이 같으면 추가 갱신을 생략합니다.
-- 상태가 바뀌면 화면 갱신을 예약합니다. 이미 예약된 갱신이 있으면 추가 예약을 생략해 같은 이벤트 안의 여러 상태 변경을 모읍니다.
-- 컴포넌트 종료 시 예약된 갱신을 무효화하고, 이전 인스턴스 생명주기의 setter 호출을 무시합니다.
-
-setter는 새 값을 저장한 뒤 `scheduleUpdate()`를 호출합니다.
-예약된 `update()`는 컴포넌트 재실행, Diff·Patch, 새 VDOM 보관과 Effect 실행까지 연결합니다.
-
-### 여러 상태 변경을 모으는 Batching
+## 여러 상태 변경을 모으는 Batching
 
 `updateScheduled`로 중복 예약을 막고, `queueMicrotask()`로 현재 동기 코드가 끝난 뒤 화면을 갱신합니다.
 다음 코드를 같은 이벤트 핸들러 안에서 실행하면, 저장된 상태는 순서대로 증가하고 렌더링은 한 번 예약됩니다.
@@ -160,24 +149,6 @@ setCount(value => value + 1);
 이 구현은 setter 호출 시 저장된 값을 바로 계산하고 **렌더링 예약을 묶는 방식**입니다.
 React는 상태 갱신을 큐에 넣고 다음 렌더링에서 처리하므로 내부 처리 방식에는 차이가 있습니다.
 비교 자료: [React — Queueing a Series of State Updates](https://react.dev/learn/queueing-a-series-of-state-updates).
-
-## useEffect — DOM 반영 후 실행과 정리
-
-- 의존성 배열의 각 값을 `Object.is()`로 비교합니다.
-- 빈 배열은 최초 마운트 후 실행하고, 의존성을 생략하면 매 렌더링 후 실행합니다.
-- 의존성이 바뀌면 이전 정리 함수를 호출한 뒤 새 Effect를 실행합니다.
-- `unmount()`에서도 정리 함수를 실행합니다.
-
-예제에서는 이름과 숫자에 맞춰 `document.title`을 바꾸고, 정리 함수에서 이전 제목을 복원합니다.
-이 구현의 Effect는 DOM 반영 직후 동기적으로 실행합니다.
-
-## useMemo — 의존성에 따른 결과 재사용
-
-- 계산 결과와 의존성 배열을 `hooks`에 저장합니다.
-- 의존성이 같으면 저장된 결과를 반환하고, 바뀌면 다시 계산합니다.
-- 예제에서는 이름으로 인사말을 만듭니다. 숫자만 증가할 때는 기존 인사말을 재사용합니다.
-
-세 Hook의 구현: [hooks.js](virtualDOM/hooks.js)
 
 ## 실제 React와의 동작 비교
 
