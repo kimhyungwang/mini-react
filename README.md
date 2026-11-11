@@ -25,13 +25,41 @@ flowchart TD
 
 ## 브라우저에서 DOM을 다루는 방법
 
-| 대상 | 역할 | 프로젝트에서의 사용 |
-| --- | --- | --- |
-| `Window` | 문서가 실행되는 브라우저 환경과 전역 API 제공 | `DOMContentLoaded` 이벤트를 받아 앱 시작 |
-| `Document` | 문서의 DOM 트리에 접근하고 노드를 생성 | `getElementById()`로 마운트 위치 조회, `createElement()`·`createTextNode()`로 DOM 생성 |
-| DOM 노드 | 화면을 구성하는 요소·텍스트와 부모/자식 관계 | `appendChild()`, `insertBefore()`, `removeChild()`, `replaceChild()`로 변경 반영 |
+브라우저는 HTML의 태그와 글자를 JavaScript로 다룰 수 있는 객체로 만듭니다.
+이 객체들이 연결된 구조가 **DOM**입니다. JavaScript로 DOM을 바꾸면 화면에도 반영됩니다.
 
-프로젝트의 `createElement()`는 VDOM을 만드는 함수입니다. 실제 DOM을 만드는 `document.createElement()`와 구분합니다.
+- **`window`**: 현재 페이지가 실행되는 브라우저 환경입니다. HTML을 다 읽었는지 등의 이벤트를 받을 수 있습니다.
+- **`document`**: 현재 열린 HTML 문서를 다루는 객체입니다. 문서에서 요소를 찾거나 새 요소를 만들 때 사용합니다.
+- **DOM 노드**: `<div>`, `<p>` 같은 요소나 텍스트를 나타내는 객체입니다.
+
+예를 들어 HTML에 다음과 같이 빈 영역이 있다고 해보겠습니다.
+
+```html
+<div id="component-area"></div>
+```
+
+JavaScript로 이 영역을 찾아 글자를 넣을 수 있습니다.
+
+```js
+// HTML을 다 읽으면 실행합니다.
+window.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("component-area"); // 영역 찾기
+  const paragraph = document.createElement("p");              // <p> 만들기
+  paragraph.textContent = "안녕하세요";                       // 글자 넣기
+  container.appendChild(paragraph);                          // 영역 안에 붙이기
+});
+```
+
+실행하면 DOM이 다음처럼 바뀌고, 화면에 **안녕하세요**가 표시됩니다.
+
+```html
+<div id="component-area">
+  <p>안녕하세요</p>
+</div>
+```
+
+mini-react에서도 `patchDOM.js`가 이런 DOM API를 사용해 VDOM에 적힌 내용을 화면에 반영합니다.
+프로젝트의 `createElement()`는 **VDOM 객체**를 만들고, `document.createElement()`는 **실제 DOM 요소**를 만듭니다.
 관련 API: [Window](https://developer.mozilla.org/en-US/docs/Web/API/Window), [Document](https://developer.mozilla.org/en-US/docs/Web/API/Document).
 
 ### 실제 DOM의 변경 감지
@@ -46,12 +74,11 @@ DOM 변경 감지와 다음 화면의 변경 사항을 계산하는 Diff는 서�
 
 ### Reflow · Repaint와 DOM 갱신 비용
 
-- **Reflow(Layout)**: 요소의 크기와 위치를 계산합니다. 내용·크기 변경이 주변 요소의 배치에도 영향을 줄 수 있습니다.
-- **Repaint(Paint)**: 계산된 배치와 스타일에 따라 픽셀을 그립니다. 색상처럼 배치를 바꾸지 않는 변화도 다시 그리기를 유발할 수 있습니다.
-- 브라우저는 여러 변경을 모아서 처리할 수 있습니다. DOM API 호출 횟수와 Reflow·Repaint 횟수가 항상 일치하지는 않습니다.
+- **Reflow**: 요소의 크기와 위치를 다시 계산하는 작업입니다.
+- **Repaint**: 글자나 색상 등을 화면에 다시 그리는 작업입니다.
 
-이 프로젝트는 기존 DOM을 재사용하고 상태 변경을 모아 불필요한 DOM 작업을 줄이는 것을 목표로 합니다.
-VDOM 생성과 비교에도 비용이 들기 때문에 성능 개선 여부는 실제 화면과 변경 패턴을 기준으로 측정해야 합니다.
+DOM을 변경하면 이런 작업이 필요할 수 있습니다.
+이 프로젝트는 기존 DOM을 재사용하고 달라진 부분만 수정해 불필요한 작업을 줄입니다.
 렌더링 과정: [MDN — Critical rendering path](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Critical_rendering_path).
 
 ## Virtual DOM · Diff · Patch
