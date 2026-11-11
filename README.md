@@ -3,15 +3,15 @@ Mini React
 
 JavaScript로 Virtual DOM, Diff·Patch, 함수형 컴포넌트와 Hooks를 직접 구현한 프로젝트입니다.
 
-사용자가 버튼을 누르거나 이름을 입력하면 상태가 바뀌고, 새 Virtual DOM과 이전 Virtual DOM을 비교해 변경 사항을 실제 DOM에 반영합니다.
+사용자 입력으로 상태가 바뀌면 새 Virtual DOM과 이전 Virtual DOM을 비교해 변경 사항을 실제 DOM에 반영합니다.
 외부 프레임워크 없이 컴포넌트 실행부터 상태 유지, 화면 갱신까지 연결했습니다.
 
 ## 동작 구조
 
 ```mermaid
 flowchart TD
-    Input[버튼 클릭 · 이름 입력] --> State[useState로 상태 변경]
-    State --> Render[갱신 예약 후 App 다시 실행]
+    Input[사용자 입력] --> State[useState로 상태 변경]
+    State --> Render[갱신 예약 후 루트 컴포넌트 다시 실행]
     Render --> Next[새 VDOM 생성]
     Previous[이전 VDOM] --> Diff[Diff: 변경 사항 비교]
     Next --> Diff
@@ -19,7 +19,7 @@ flowchart TD
     Patch --> Effect[의존성이 바뀐 Effect 실행]
 ```
 
-- 상태는 `hooks` 배열에 저장하고, 갱신이 예약되면 `App`과 자식 컴포넌트를 실행해 새 VDOM을 만듭니다.
+- 상태는 `hooks` 배열에 저장하고, 갱신이 예약되면 루트와 자식 컴포넌트를 실행해 새 VDOM을 만듭니다.
 - 이전 VDOM과 비교한 변경 목록을 실제 DOM에 적용하며, 유지할 DOM 노드는 재사용합니다.
 - 갱신한 VDOM은 다음 비교의 기준으로 저장하고, DOM 반영 후 의존성이 바뀐 Effect를 실행합니다.
 
@@ -77,13 +77,13 @@ VDOM은 화면 구조를 표현하는 일반 JavaScript 객체입니다. 다음 
 같은 위치의 두 노드를 비교하고, 자식도 같은 방식으로 재귀적으로 비교합니다.
 값이 같으면 변경 목록을 만들지 않고, 차이가 있으면 다음 기준으로 처리합니다.
 
-| 경우 | 예시 | 변경 목록 |
+| 경우 | 판단 기준 | 변경 목록 |
 | --- | --- | --- |
 | 추가 | 이전 노드가 없고 다음 노드가 있음 | `ADD` |
 | 삭제 | 이전 노드가 있고 다음 노드가 없음 | `REMOVE` |
-| 교체 | `p`가 `div`로 변경되거나 텍스트와 요소가 서로 바뀜 | `REPLACE` |
-| 텍스트 변경 | `"숫자: 0"`이 `"숫자: 1"`로 변경 | `TEXT` |
-| 속성 변경 | `class`가 바뀌거나 속성이 추가·삭제됨 | `SET_PROP`, `REMOVE_PROP` |
+| 교체 | 태그나 노드 종류가 달라짐 | `REPLACE` |
+| 텍스트 변경 | 같은 위치의 텍스트 내용이 달라짐 | `TEXT` |
+| 속성 변경 | 속성이 추가·삭제되거나 값이 달라짐 | `SET_PROP`, `REMOVE_PROP` |
 
 이벤트 함수와 입력 프로퍼티는 각각 `SET_EVENT`, `SET_DOM_PROP`로 구분합니다.
 현재는 자식을 인덱스로 대응시키므로 목록 중간 삽입·순서 변경에서 추가 수정이 발생할 수 있으며, 전역적으로 최소인 변경 횟수를 보장하지는 않습니다.
@@ -101,29 +101,23 @@ Patch는 경로에 해당하는 DOM을 찾아 추가·삭제·교체 메서드�
 
 ## 함수형 컴포넌트와 상태 분리
 
-- UI를 숫자 표시·증가를 담당하는 `Counter`와 이름 입력을 담당하는 `NameInput`으로 나눕니다.
-- 루트 `App`에서 숫자와 이름 상태를 관리합니다.
-- 자식 `Counter`, `NameInput`은 전달받은 props로 Virtual DOM을 반환합니다.
+- UI를 역할에 따라 작은 함수형 컴포넌트로 나눕니다.
+- 루트 컴포넌트에서 상태를 관리합니다.
+- 자식 컴포넌트는 전달받은 props로 Virtual DOM을 반환합니다.
 - 부모가 상태 변경 함수를 props로 전달하고, 자식은 사용자 입력을 그 함수에 전달합니다.
 - `createElement()`로 실행한 자식 컴포넌트에서는 Hook 호출을 차단합니다.
-
-```text
-App — count, name 상태 관리
-├─ NameInput — name과 입력 처리 함수 전달
-└─ Counter   — count와 증가 처리 함수 전달
-```
 
 구현: [components.js](virtualDOM/components.js), [createElement.js](virtualDOM/createElement.js)
 
 여러 컴포넌트가 함께 사용하는 상태는 가장 가까운 공통 부모에 두고, 값과 변경 함수를 props로 전달할 수 있습니다.
-이 과제에서는 루트만 상태를 관리한다는 제약에 맞춰 `App`이 모든 상태를 소유합니다.
+이 구현에서는 루트만 상태를 관리한다는 제약에 맞춰 모든 상태를 루트에 둡니다.
 관련 개념: [React — Sharing State Between Components](https://react.dev/learn/sharing-state-between-components).
 
 ## 함수를 다시 실행해도 유지되는 상태
 
 - `FunctionComponent` 인스턴스에 `hooks` 배열을 보관합니다.
 - 렌더링을 시작할 때 Hook 인덱스를 0으로 초기화하고, 호출 순서대로 기존 저장 공간을 사용합니다.
-- `App` 함수가 다시 실행되어도 같은 인스턴스의 상태를 읽습니다.
+- 루트 컴포넌트 함수가 다시 실행되어도 같은 인스턴스의 상태를 읽습니다.
 - 렌더링 간 Hook 호출 개수나 종류의 순서가 달라지면 오류를 발생시킵니다.
 
 구현: [FunctionComponent.js](virtualDOM/FunctionComponent.js), [hooks.js](virtualDOM/hooks.js)
@@ -131,9 +125,7 @@ App — count, name 상태 관리
 ## 여러 상태 변경을 모으는 Batching
 
 `updateScheduled`로 중복 예약을 막고, `queueMicrotask()`로 현재 동기 코드가 끝난 뒤 화면을 갱신합니다.
-예를 들어 같은 클릭 처리 안에서 이전 값에 1을 더하는 상태 변경을 세 번 요청하면,
-저장된 값은 순서대로 증가하고 화면 갱신은 한 번만 예약됩니다.
-초기값이 0이면 다음 화면에는 3이 표시됩니다.
+같은 이벤트 처리 안에서 여러 상태가 바뀌어도 화면 갱신은 한 번만 예약해 변경 결과를 함께 반영합니다.
 
 이 구현은 setter 호출 시 저장된 값을 바로 계산하고 **렌더링 예약을 묶는 방식**입니다.
 React는 상태 갱신을 큐에 넣고 다음 렌더링에서 처리하므로 내부 처리 방식에는 차이가 있습니다.
@@ -160,7 +152,7 @@ React도 업데이트가 발생하면 컴포넌트를 실행해 다음 UI를 계
 ```text
 virtualDOM/
 ├─ virtualDOM.html       # 실행 페이지와 루트 마운트
-├─ components.js         # App, Counter, NameInput
+├─ components.js         # 루트·자식 함수형 컴포넌트
 ├─ FunctionComponent.js  # 렌더링·Hook 저장 공간·생명주기 관리
 ├─ hooks.js              # useState, useEffect, useMemo
 ├─ createElement.js      # Virtual DOM 생성과 자식 함수 실행
