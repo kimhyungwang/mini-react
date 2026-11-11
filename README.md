@@ -1,6 +1,7 @@
 # mini-react
 
 화면을 구성할 내용
+```js
 function App(props) {
   // hooks[0]: 숫자
   const [count, setCount] = useState(0);
@@ -35,8 +36,10 @@ function App(props) {
     h("p", null, "이름 글자 수: ", nameLength)
   );
 }
+```
 
 화면 생성
+```js
 const app = new FunctionComponent(App, { title: "useState 테스트" });
 app.mount(document.getElementById("app"));
 
@@ -59,11 +62,15 @@ render() {
   currentComponent = null;
   return vnode;
 }
+```
 
 철수 입력
+```js
 onInput: (e) => setName(e.target.value)
+```
 
 변경 내용
+```js
 const setState = (nextValue) => {
     if (Object.is(nextValue, component.hooks[i])) return;  // 값이 같으면 다시 안 그림
 
@@ -71,14 +78,27 @@ const setState = (nextValue) => {
     component.update();              // 다시 그리기
   };
 
-update update() { const newVNode = this.render(); const patches = diff(this.vnode, newVNode); console.log("update 변경 목록:", patches); patch(this.dom, patches); this.dom = this.container.firstChild; this.vnode = newVNode; this.runEffects(); }
+update update() {
+  const newVNode = this.render();
+  const patches = diff(this.vnode, newVNode);
+  console.log("update 변경 목록:", patches);
+  patch(this.dom, patches);
+  this.dom = this.container.firstChild;
+  this.vnode = newVNode;
+  this.runEffects();
+}
+```
+
 글자 수
+```js
 // hooks[2]: name이 바뀔 때만 글자 수를 다시 계산
   const nameLength = useMemo(() => {
     console.log("useMemo 계산 실행");
     return name.length;
   }, [name]);
+```
 
+```js
 useMemo
 export function useMemo(compute, deps) {
 
@@ -101,3 +121,4 @@ if (!prev || depsChanged(prev.deps, deps)) {
 
 return component.hooks[i].value;
 }
+```
