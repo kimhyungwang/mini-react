@@ -32,31 +32,12 @@ flowchart TD
 - **`document`**: 현재 열린 HTML 문서를 다루는 객체입니다. 문서에서 요소를 찾거나 새 요소를 만들 때 사용합니다.
 - **DOM 노드**: `<div>`, `<p>` 같은 요소나 텍스트를 나타내는 객체입니다.
 
-예를 들어 HTML에 다음과 같이 빈 영역이 있다고 해보겠습니다.
+예를 들어 빈 영역에 **안녕하세요**라는 글자를 표시하려면 다음 순서로 작업합니다.
 
-```html
-<div id="component-area"></div>
-```
-
-JavaScript로 이 영역을 찾아 글자를 넣을 수 있습니다.
-
-```js
-// HTML을 다 읽으면 실행합니다.
-window.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("component-area"); // 영역 찾기
-  const paragraph = document.createElement("p");              // <p> 만들기
-  paragraph.textContent = "안녕하세요";                       // 글자 넣기
-  container.appendChild(paragraph);                          // 영역 안에 붙이기
-});
-```
-
-실행하면 DOM이 다음처럼 바뀌고, 화면에 **안녕하세요**가 표시됩니다.
-
-```html
-<div id="component-area">
-  <p>안녕하세요</p>
-</div>
-```
+1. 브라우저가 HTML을 다 읽을 때까지 기다립니다.
+2. 문서에서 글자를 넣을 영역을 찾습니다.
+3. 새 문단 요소를 만들고 글자를 넣습니다.
+4. 만든 문단을 해당 영역 안에 붙이면 화면에 표시됩니다.
 
 mini-react에서도 `patchDOM.js`가 이런 DOM API를 사용해 VDOM에 적힌 내용을 화면에 반영합니다.
 프로젝트의 `createElement()`는 **VDOM 객체**를 만들고, `document.createElement()`는 **실제 DOM 요소**를 만듭니다.
@@ -88,17 +69,15 @@ Diff는 두 트리의 차이를 변경 목록으로 만들고, Patch는 해당 �
 
 ### Virtual DOM의 구조와 역할
 
-VDOM은 화면 구조를 표현하는 일반 JavaScript 객체입니다.
+VDOM은 화면 구조를 표현하는 일반 JavaScript 객체입니다. 다음 정보를 보관합니다.
 
-```js
-const virtualDOM = {
-  type: "p",               // 태그
-  props: { class: "count" }, // HTML 속성
-  children: ["숫자: 1"],    // 문자열 또는 자식 VDOM
-  events: {},              // 이벤트 함수
-  domProps: {}             // value, checked 등 현재 입력 상태
-};
-```
+| 정보 | 내용 |
+| --- | --- |
+| 태그 | 어떤 종류의 요소인지 |
+| 속성 | 클래스 등 요소에 적용할 설정 |
+| 자식 | 요소 안에 들어갈 글자나 다른 요소 |
+| 이벤트 | 클릭·입력 시 실행할 함수 |
+| 입력 상태 | 입력값이나 체크 여부 |
 
 이전 화면과 다음 화면을 데이터로 비교할 수 있어, 컴포넌트가 선언한 결과를 실제 DOM에 반영하는 기준이 됩니다.
 최초 렌더링에서는 DOM을 생성하고, 이후에는 이전 VDOM과 새 VDOM을 비교해 기존 DOM을 갱신합니다.
@@ -162,16 +141,9 @@ App — count, name 상태 관리
 ## 여러 상태 변경을 모으는 Batching
 
 `updateScheduled`로 중복 예약을 막고, `queueMicrotask()`로 현재 동기 코드가 끝난 뒤 화면을 갱신합니다.
-다음 코드를 같은 이벤트 핸들러 안에서 실행하면, 저장된 상태는 순서대로 증가하고 렌더링은 한 번 예약됩니다.
-
-```js
-setCount(value => value + 1);
-setCount(value => value + 1);
-setCount(value => value + 1);
-```
-
+예를 들어 같은 클릭 처리 안에서 이전 값에 1을 더하는 상태 변경을 세 번 요청하면,
+저장된 값은 순서대로 증가하고 화면 갱신은 한 번만 예약됩니다.
 초기값이 0이면 다음 화면에는 3이 표시됩니다.
-현재 렌더링에서 받은 `count` 변수는 그대로이므로 연속 증가에는 함수형 갱신을 사용합니다.
 
 이 구현은 setter 호출 시 저장된 값을 바로 계산하고 **렌더링 예약을 묶는 방식**입니다.
 React는 상태 갱신을 큐에 넣고 다음 렌더링에서 처리하므로 내부 처리 방식에는 차이가 있습니다.
