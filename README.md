@@ -23,19 +23,6 @@ flowchart TD
 - 이전 VDOM과 비교한 변경 목록을 실제 DOM에 적용하며, 유지할 DOM 노드는 재사용합니다.
 - 갱신한 VDOM은 다음 비교의 기준으로 저장하고, DOM 반영 후 의존성이 바뀐 Effect를 실행합니다.
 
-## 파일 구성
-
-```text
-virtualDOM/
-├─ virtualDOM.html       # 실행 페이지와 루트 마운트
-├─ components.js         # 루트·자식 함수형 컴포넌트
-├─ FunctionComponent.js  # 렌더링·Hook 저장 공간·생명주기 관리
-├─ hooks.js              # useState, useEffect, useMemo
-├─ createElement.js      # Virtual DOM 생성과 자식 함수 실행
-├─ diffVirtualDOM.js     # 변경 목록 계산
-└─ patchDOM.js           # 실제 DOM 생성과 부분 갱신
-```
-
 ## 중점 포인트
 
 ### 브라우저에서 DOM을 다루는 방법
@@ -117,20 +104,11 @@ Patch는 경로에 해당하는 DOM을 찾아 추가·삭제·교체 메서드�
 
 세 Hook은 `getHook()`으로 자신의 저장 공간을 찾습니다.
 컴포넌트 함수가 다시 실행되어도 같은 호출 순서의 저장 공간을 사용하므로 상태와 계산 결과가 유지됩니다.
-아래 코드는 현재 구현에서 핵심 부분을 발췌한 것입니다.
 
 #### useState — 상태 저장과 화면 갱신
 
 현재 상태와 상태를 바꾸는 함수를 함께 반환합니다.
 변경 함수에서는 전달받은 값 또는 이전 상태로 계산한 값을 저장합니다.
-
-```js
-const nextValue = typeof valueOrUpdater === "function"
-  ? withoutHooks(() => valueOrUpdater(state.value)) : valueOrUpdater;
-if (Object.is(state.value, nextValue)) return;
-state.value = nextValue;
-component.scheduleUpdate();
-```
 
 - 값이 같으면 추가 갱신을 생략합니다.
 - 값이 달라지면 상태를 저장하고 `scheduleUpdate()`를 통해 `update()`가 실행되도록 합니다.
@@ -140,26 +118,7 @@ component.scheduleUpdate();
 
 의존성이 바뀌었는지 확인하고, 실행할 함수를 저장합니다.
 
-```js
-const nextDependencies = copyDependencies(dependencies);
-const hook = getHook("effect", () => ({ initialized: false, cleanup: undefined }));
-if (!hook.initialized || dependenciesChanged(hook.dependencies, nextDependencies)) {
-  hook.pending = { effect, dependencies: nextDependencies };
-}
-```
-
 저장한 함수는 DOM 반영 후 `flushEffects()`에서 실행합니다.
-다음은 이전 정리 함수를 호출하고 새 Effect를 실행하는 부분입니다.
-
-```js
-const cleanup = hook.cleanup;
-hook.cleanup = undefined;
-if (cleanup) withoutHooks(cleanup);
-hook.dependencies = pending.dependencies;
-hook.initialized = true;
-const nextCleanup = withoutHooks(pending.effect);
-hook.cleanup = nextCleanup;
-```
 
 - 의존성을 생략하면 매 렌더링 후 실행하고, 빈 배열이면 최초 마운트 후 실행합니다.
 - 의존성 배열에 값이 있으면 해당 값이 달라질 때 다시 실행합니다.
@@ -168,17 +127,6 @@ hook.cleanup = nextCleanup;
 #### useMemo — 계산 결과 재사용
 
 최초 실행이거나 의존성이 바뀌었을 때만 계산하고 결과를 저장합니다.
-
-```js
-const nextDependencies = copyDependencies(dependencies);
-const hook = getHook("memo", () => ({ initialized: false }));
-if (!hook.initialized || dependenciesChanged(hook.dependencies, nextDependencies)) {
-  hook.value = withoutHooks(calculate);
-  hook.dependencies = nextDependencies;
-  hook.initialized = true;
-}
-return hook.value;
-```
 
 의존성이 같으면 저장한 결과를 그대로 반환합니다.
 `useEffect`가 실행할 작업과 정리 함수를 관리한다면, `useMemo`는 렌더링 중 사용할 계산 결과를 관리합니다.
