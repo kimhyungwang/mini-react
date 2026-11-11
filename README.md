@@ -11,15 +11,15 @@ JavaScript로 Virtual DOM, Diff·Patch, 함수형 컴포넌트와 Hooks를 직�
 ```mermaid
 flowchart TD
     Input[사용자 입력] --> State[useState로 상태 변경]
-    State --> Render[갱신 예약 후 루트 컴포넌트 다시 실행]
-    Render --> Next[새 VDOM 생성]
+    State --> Update["update() 호출"]
+    Update --> Next[새 VDOM 생성]
     Previous[이전 VDOM] --> Diff[Diff: 변경 사항 비교]
     Next --> Diff
     Diff --> Patch[Patch: 실제 DOM 부분 갱신]
     Patch --> Effect[의존성이 바뀐 Effect 실행]
 ```
 
-- 상태는 `hooks` 배열에 저장하고, 갱신이 예약되면 루트와 자식 컴포넌트를 실행해 새 VDOM을 만듭니다.
+- 상태는 `hooks` 배열에 저장하고, `update()`가 루트와 자식 컴포넌트를 실행해 새 VDOM을 만듭니다.
 - 이전 VDOM과 비교한 변경 목록을 실제 DOM에 적용하며, 유지할 DOM 노드는 재사용합니다.
 - 갱신한 VDOM은 다음 비교의 기준으로 저장하고, DOM 반영 후 의존성이 바뀐 Effect를 실행합니다.
 
@@ -99,18 +99,6 @@ Patch는 경로에 해당하는 DOM을 찾아 추가·삭제·교체 메서드�
 - 렌더링 간 Hook 호출 개수나 종류의 순서가 달라지면 오류를 발생시킵니다.
 
 구현: [FunctionComponent.js](virtualDOM/FunctionComponent.js), [hooks.js](virtualDOM/hooks.js)
-
-## 실제 React와의 동작 비교
-
-두 구현 모두 렌더링 결과를 비교해 실제 DOM의 변경된 부분을 갱신합니다.
-
-| 항목 | 이 프로젝트 | React |
-| --- | --- | --- |
-| 상태 관리 | 루트에서만 상태·Hook 사용 | 각 함수형 컴포넌트에서 사용 가능 |
-| 자식 비교 | 인덱스 기준 | 타입·위치·목록의 `key` 등을 활용 |
-| Effect 실행 | DOM 반영 직후 실행 | 대체로 Paint 후 실행하며, 상호작용에 따라 달라짐 |
-
-참고: [React — Rendering Lists](https://react.dev/learn/rendering-lists), [useEffect](https://react.dev/reference/react/useEffect).
 
 ## 파일 구성
 
