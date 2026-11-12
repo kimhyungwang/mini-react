@@ -174,10 +174,9 @@ setTodos(todos.map((t, i) => i === index ? "수정" : t));  // 수정
 
 ## 여러 상태 변경 (Batching)
 
-> React는 한 번의 이벤트 안에서 `setState`를 여러 번 불러도 모아서 화면을 한 번만 다시 그립니다.
+> Mini React는 `setState`를 부를 때마다 바로 다시 그립니다.
 
-- Mini React는 `setState`를 부를 때마다 바로 다시 그립니다.
-- 예: 룰렛의 돌리기 버튼은 상태를 세 번 바꾸기 때문에 화면도 세 번 다시 그려집니다.
+- React는 한 번의 이벤트 안에서 `setState`를 여러 번 불러도 모아서 화면을 한 번만 다시 그립니다.
 
 ## 파일 구성
 
